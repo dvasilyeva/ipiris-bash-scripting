@@ -1,0 +1,80 @@
+#!/bin/bash
+trap 'echo; echo "Для выхода введите q или Q"' SIGINT
+
+declare -A stacks=([A]="87654321" [B]="" [C]="")
+
+print_stacks() {
+    for (( row=8; row>=1; row-- ))
+    do
+        line=""
+
+        for name in A B C
+        do
+            stack=${stacks[${name}]}
+
+            if (( ${#stack} >= row ))
+                then
+                    cell=${stack:row-1:1}
+                else
+                    cell=" "
+            fi
+
+            line+="|${cell}|  "
+        done
+
+        echo "${line%  }"
+    done
+
+    echo "+-+  +-+  +-+"
+    echo " A    B    C"
+    echo
+}
+
+declare -i step=1
+
+print_stacks
+
+while :
+do
+    read -p "Ход № ${step} (откуда, куда): " input
+
+    input=${input// /}
+    input=${input^^}
+
+    case "${input}" in
+        Q)
+            exit 1
+        ;;
+        AB|AC|BA|BC|CA|CB)
+        ;;
+        *)
+            echo "Ошибка: введите имена двух стеков (A, B, C) или q для выхода"
+            continue
+        ;;
+    esac
+
+    from=${input:0:1}
+    to=${input:1:1}
+
+    from_stack=${stacks[${from}]}
+    to_stack=${stacks[${to}]}
+
+    if [[ -z "${from_stack}" || ( -n "${to_stack}" && ${from_stack: -1} -gt ${to_stack: -1} ) ]]
+        then
+            echo "Такое перемещение запрещено!"
+            continue
+    fi
+
+    stacks[${from}]=${from_stack%?}
+    stacks[${to}]+=${from_stack: -1}
+
+    print_stacks
+
+    if [[ "${stacks[B]}" == "87654321" || "${stacks[C]}" == "87654321" ]]
+        then
+            echo "Вы победили!"
+            exit 0
+    fi
+
+    step+=1
+done
