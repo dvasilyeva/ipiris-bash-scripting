@@ -1,0 +1,135 @@
+#!/bin/bash
+print_field() {
+    echo "+-------------------+"
+
+    for (( row=0; row<4; row++ ))
+    do
+        for (( col=0; col<4; col++ ))
+        do
+            value=${field[row*4+col]}
+
+            if (( value == 0 ))
+                then
+                    value=""
+            fi
+
+            printf "| %-2s " "${value}"
+        done
+
+        echo "|"
+
+        if (( row < 3 ))
+            then
+                echo "|-------------------|"
+        fi
+    done
+
+    echo "+-------------------+"
+}
+
+declare -a field=(1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0)
+
+for (( i=15; i>0; i-- ))
+do
+    j=$(( RANDOM % (i + 1) ))
+    temp=${field[i]}
+    field[i]=${field[j]}
+    field[j]=${temp}
+done
+
+for (( i=0; i<16; i++ ))
+do
+    if (( field[i] == 0 ))
+        then
+            empty=${i}
+    fi
+done
+
+declare -i step=1
+error=0
+
+while :
+do
+    echo
+    echo "Ход № ${step}"
+    echo
+    print_field
+    echo
+
+    neighbours=()
+
+    if (( empty % 4 > 0 ))
+        then
+            neighbours+=($(( empty - 1 )))
+    fi
+
+    if (( empty / 4 > 0 ))
+        then
+            neighbours+=($(( empty - 4 )))
+    fi
+
+    if (( empty % 4 < 3 ))
+        then
+            neighbours+=($(( empty + 1 )))
+    fi
+
+    if (( empty / 4 < 3 ))
+        then
+            neighbours+=($(( empty + 4 )))
+    fi
+
+    if (( error == 1 ))
+        then
+            list=""
+
+            for n in "${neighbours[@]}"
+            do
+                list+="${field[n]}, "
+            done
+
+            echo "Неверный ход!"
+            echo "Невозможно костяшку ${input} передвинуть на пустую ячейку."
+            echo "Можно выбрать: ${list%, }"
+            echo
+
+            error=0
+    fi
+
+    read -p "Ваш ход (q - выход): " input
+
+    if [[ "${input}" == "q" ]]
+        then
+            exit
+    fi
+
+    tile=-1
+
+    for n in "${neighbours[@]}"
+    do
+        if [[ "${field[n]}" == "${input}" ]]
+            then
+                tile=${n}
+        fi
+    done
+
+    if (( tile == -1 ))
+        then
+            error=1
+            continue
+    fi
+
+    field[empty]=${field[tile]}
+    field[tile]=0
+    empty=${tile}
+
+    if [[ "${field[*]}" == "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 0" ]]
+        then
+            echo
+            echo "Вы собрали головоломку за ${step} ходов."
+            echo
+            print_field
+            exit
+    fi
+
+    step+=1
+done
