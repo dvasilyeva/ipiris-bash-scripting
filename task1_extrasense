@@ -1,0 +1,65 @@
+#!/bin/bash
+RED='\e[31m'
+GREEN='\e[32m'
+RESET='\e[0m'
+
+declare -i step=1
+declare -i hit=0
+declare -i miss=0
+declare -a numbers
+
+while :
+do
+    my_number=${RANDOM: -1}
+
+    echo "Step: ${step}"
+
+    while :
+    do
+        read -p "Please enter number from 0 to 9 (q - quit): " input
+
+        case "${input}" in
+            [0-9])
+                break
+            ;;
+            q)
+                echo "Bye"
+                echo "Exit..."
+                exit
+            ;;
+            *)
+                echo "Not valid input"
+                echo "Please repeat"
+            ;;
+        esac
+    done
+
+    if [[ "${input}" == "${my_number}" ]]
+        then
+            echo "Hit! My number: ${my_number}"
+            hit+=1
+            number_string="${GREEN}${my_number}${RESET}"
+        else
+            echo "Miss! My number: ${my_number}"
+            miss+=1
+            number_string="${RED}${my_number}${RESET}"
+    fi
+
+    numbers+=(${number_string})
+
+    total=$(( hit + miss ))
+
+    let hit_percent=hit*100/total
+    let miss_percent=100-hit_percent
+
+    echo "Hit: ${hit_percent}%" "Miss: ${miss_percent}%"
+
+    if (( ${#numbers[@]} < 10 ))
+        then
+            echo -e "Numbers: ${numbers[@]}"
+        else
+            echo -e "Numbers: ${numbers[@]: -10}"
+    fi
+
+    step+=1
+done
