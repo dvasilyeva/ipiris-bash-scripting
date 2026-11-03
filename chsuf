@@ -1,0 +1,37 @@
+#!/bin/bash
+dir=$1
+old=$2
+new=$3
+
+if [[ ! -d "${dir}" ]]
+    then
+        echo "Ошибка: ${dir} не является каталогом"
+        exit 1
+fi
+
+for suffix in "${old}" "${new}"
+do
+    case "${suffix}" in
+        ""|[!.]*|.*.*)
+            echo "Ошибка: ${suffix} не является суффиксом"
+            exit 1
+        ;;
+    esac
+done
+
+shopt -s globstar dotglob
+
+for file in "${dir}"/**
+do
+    if [[ ! -f "${file}" || -L "${file}" ]]
+        then
+            continue
+    fi
+
+    name=${file##*/}
+
+    if [[ "${name}" == *"${old}" && "${name}" != "${old}" ]]
+        then
+            mv "${file}" "${file/%"${old}"/"${new}"}"
+    fi
+done
