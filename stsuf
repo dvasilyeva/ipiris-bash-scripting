@@ -1,0 +1,40 @@
+#!/bin/bash
+dir=$1
+
+if [[ ! -d "${dir}" ]]
+    then
+        echo "Ошибка: ${dir} не является каталогом"
+        exit 1
+fi
+
+declare -A counts
+
+shopt -s globstar dotglob
+
+for file in "${dir}"/**
+do
+    if [[ ! -f "${file}" || -L "${file}" ]]
+        then
+            continue
+    fi
+
+    name=${file##*/}
+    rest=${name:1}
+
+    if [[ "${rest}" == *.* ]]
+        then
+            suffix=".${rest##*.}"
+        else
+            suffix="no suffix"
+    fi
+
+    counts["${suffix}"]=$(( ${counts["${suffix}"]:-0} + 1 ))
+done
+
+for suffix in "${!counts[@]}"
+do
+    echo "${counts["${suffix}"]} ${suffix}"
+done | sort -rn | while IFS= read -r line
+do
+    echo "${line#* }: ${line%% *}"
+done
