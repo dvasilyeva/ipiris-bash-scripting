@@ -1,0 +1,25 @@
+#!/bin/bash
+dir=$1
+
+if [[ ! -d "${dir}" ]]
+    then
+        echo "Ошибка: ${dir} не является каталогом"
+        exit 1
+fi
+
+line="Approved $(whoami) $(date -I)"
+
+shopt -s dotglob
+
+for file in "${dir}"/*.txt
+do
+    if [[ ! -f "${file}" || -L "${file}" ]]
+        then
+            continue
+    fi
+
+    temp=$(mktemp)
+    { echo "${line}"; cat "${file}"; } > "${temp}"
+    cat "${temp}" > "${file}"
+    rm "${temp}"
+done
