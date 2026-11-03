@@ -1,0 +1,40 @@
+#!/bin/bash
+while getopts "d:n:" option
+do
+    case "${option}" in
+        d)
+            dir_path=${OPTARG}
+        ;;
+        n)
+            name=${OPTARG}
+        ;;
+    esac
+done
+
+if [[ -z "${dir_path}" || -z "${name}" ]]
+    then
+        echo "Использование: mkarch -d dir_path -n name"
+        exit 1
+fi
+
+cat > "${name}" <<'SCRIPT'
+#!/bin/bash
+unpack_dir="."
+
+while getopts "o:" option
+do
+    case "${option}" in
+        o)
+            unpack_dir=${OPTARG}
+        ;;
+    esac
+done
+
+base64 -d <<'ARCHIVE' | tar -xz --no-overwrite-dir -C "${unpack_dir}"
+SCRIPT
+
+tar -cz -C "${dir_path}" . | base64 >> "${name}"
+
+echo "ARCHIVE" >> "${name}"
+
+chmod a+x "${name}"
